@@ -13,13 +13,21 @@ import (
 
 type BookStoreHandlerImpl struct{}
 
+func JSONResponse(c *fiber.Ctx, status int, message string, data interface{}) error {
+	return c.Status(status).JSON(fiber.Map{
+		"status":  http.StatusText(status),
+		"message": message,
+		"data":    data,
+	})
+}
+
 // GetAllBooks retrieves all books from the database
-func (h *BookStoreHandlerImpl) GetAllBooks(c *fiber.Ctx, dbClient *mongo.Client) {
+func (h *BookStoreHandlerImpl) GetAllBookStore(c *fiber.Ctx, dbClient *mongo.Client) {
 	collection := dbClient.Database("bookstore").Collection("bookstore")
 
 	cursor, err := collection.Find(context.Background(), bson.M{})
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+		c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Failed to retrieve books",
 			"data":    err.Error(),
@@ -31,7 +39,7 @@ func (h *BookStoreHandlerImpl) GetAllBooks(c *fiber.Ctx, dbClient *mongo.Client)
 		var book models.BookStore
 		if err := cursor.Decode(&book); err != nil {
 
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 				"status":  "error",
 				"message": "Failed to decode book",
 				"data":    err.Error(),
@@ -40,21 +48,17 @@ func (h *BookStoreHandlerImpl) GetAllBooks(c *fiber.Ctx, dbClient *mongo.Client)
 		}
 		books = append(books, book)
 	}
-	return c.json(fiber.Map{
-		"status":  "success",
-		"message": "Books retrieved successfully",
-		"data":    books,
-	})
+	return
 }
 
 // AddBook adds a new book to the database
-func (h *BookStoreHandlerImpl) AddBook(c *fiber.Ctx, dbClient *mongo.Client) {
+func (h *BookStoreHandlerImpl) AddBookStore(c *fiber.Ctx, dbClient *mongo.Client) error {
 
 	collection := dbClient.Database("bookstore").Collection("bookstore")
 
 	// Decode the request body into a Book struct
 	var bookstore models.BookStore
-	if err := c.BodyParse(bookstore); err != nil {
+	if err := c.BodyParser(&bookstore); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Invalid request payload",
@@ -63,7 +67,7 @@ func (h *BookStoreHandlerImpl) AddBook(c *fiber.Ctx, dbClient *mongo.Client) {
 	}
 
 	// Insert the book into the collection
-	bookstore.ID = primitive.NewObjectID() // Generate a new ObjectID
+	bookstore.ID = primitive.NewObjectID().Hex() // Generate a new ObjectID and convert to string
 	_, err := collection.InsertOne(context.Background(), bookstore)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
@@ -81,13 +85,13 @@ func (h *BookStoreHandlerImpl) AddBook(c *fiber.Ctx, dbClient *mongo.Client) {
 }
 
 // GetBook retrieves a book by its ID
-func (h *BookStoreHandlerImpl) GetBook(c *fiber.Ctx, dbClient *mongo.Client) {
+func (h *BookStoreHandlerImpl) GetBookStore(c *fiber.Ctx, dbClient *mongo.Client) error {
 	collection := dbClient.Database("bookstore").Collection("bookstore")
 
-	idParam := c.URL.Query().Get("id")
+	idParam := c.Query("id")
 	id, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+		c.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Invalid bookstore ID",
 			"data":    err.Error(),
@@ -119,12 +123,12 @@ func (h *BookStoreHandlerImpl) GetBook(c *fiber.Ctx, dbClient *mongo.Client) {
 }
 
 // UpdateBook updates an existing book in the database
-func (h *BookStoreHandlerImpl) UpdateBook(c *fiber.Ctx, dbClient *mongo.Client) {
+func (h *BookStoreHandlerImpl) UpdateBookStore(c *fiber.Ctx, dbClient *mongo.Client) error {
 
 	collection := dbClient.Database("bookstore").Collection("bookstore")
 
 	var bookstore models.BookStore
-	if err := c.BodyParse(bookstore); err != nil {
+	if err := c.BodyParser(bookstore); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Invalid request payload",
@@ -132,7 +136,7 @@ func (h *BookStoreHandlerImpl) UpdateBook(c *fiber.Ctx, dbClient *mongo.Client) 
 		})
 	}
 
-	idParam := c.URL.Query().Get("id")
+	idParam := c.Query("id")
 	id, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
@@ -167,17 +171,17 @@ func (h *BookStoreHandlerImpl) UpdateBook(c *fiber.Ctx, dbClient *mongo.Client) 
 		})
 	}
 
-	c.json(fiber.Map{
+	return c.JSON(fiber.Map{
 		"status":  "success",
 		"message": "BookStore updated successfully",
 		"data":    bookstore,
 	})
 }
 
-func (h *BookStoreHandlerImpl) DeleteBook(c *fiber.Ctx, dbClient *mongo.Client) {
+func (h *BookStoreHandlerImpl) DeleteBook(c *fiber.Ctx, dbClient *mongo.Client) error {
 	collection := dbClient.Database("bookstore").Collection("bookstore")
 
-	idParam := c.URL.Query().Get("id")
+	idParam := c.Query("id")
 	id, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
