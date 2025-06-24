@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/varnitha0415/GoLearnings/books_api_crud/config"
-	"github.com/varnitha0415/GoLearnings/books_api_crud/handlers"
+	"github.com/varnitha0415/GoLearnings/bookstore_api_fiber/handlers"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -22,15 +22,22 @@ func ConnectToDB() (*mongo.Client, error) {
 }
 
 func main() {
-	bookHandler := &handlers.BookHandlerImpl{}
+
+	app := fiber.New()
+
+	bookstoreHandler := &handlers.BookStoreHandlerImpl{}
 	var err error
 	dbClient, err = ConnectToDB()
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	http.HandleFunc("/books", func(w http.ResponseWriter, r *http.Request) {
-		bookHandler.GetAllBooks(w, r, dbClient)
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendString("Hello, World!")
+	})
+
+	app.Get("/books", func(w http.ResponseWriter, r *http.Request) {
+		bookstoreHandler.
 	})
 	http.HandleFunc("/books/add", func(w http.ResponseWriter, r *http.Request) {
 		bookHandler.AddBook(w, r, dbClient)
@@ -42,5 +49,6 @@ func main() {
 		bookHandler.DeleteBook(w, r, dbClient)
 	})
 
-	fmt.Println("Starting server on :8080")
+	app.Listen(":3000")
+
 }
