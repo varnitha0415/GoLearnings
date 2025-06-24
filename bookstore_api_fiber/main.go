@@ -2,10 +2,9 @@ package main
 
 import (
 	"log"
-	"net/http"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/varnitha0415/GoLearnings/books_api_crud/config"
+	"github.com/varnitha0415/GoLearnings/bookstore_api_fiber/config"
 	"github.com/varnitha0415/GoLearnings/bookstore_api_fiber/handlers"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -36,17 +35,9 @@ func main() {
 		return c.SendString("Hello, World!")
 	})
 
-	app.Get("/books", func(w http.ResponseWriter, r *http.Request) {
-		bookstoreHandler.
-	})
-	http.HandleFunc("/books/add", func(w http.ResponseWriter, r *http.Request) {
-		bookHandler.AddBook(w, r, dbClient)
-	})
-	http.HandleFunc("/books/update", func(w http.ResponseWriter, r *http.Request) {
-		bookHandler.UpdateBook(w, r, dbClient)
-	})
-	http.HandleFunc("/books/delete", func(w http.ResponseWriter, r *http.Request) {
-		bookHandler.DeleteBook(w, r, dbClient)
+	app.Get("/books", func(c *fiber.Ctx) error {
+		bookstoreHandler.GetAllBookStore(c, dbClient)
+
 	})
 
 	app.Listen(":3000")
