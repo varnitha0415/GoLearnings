@@ -5,9 +5,9 @@ import (
 )
 
 type BookStoreHandler interface {
-	GetAllBookStore(c *fiber.Ctx)
-	AddBookStore(c *fiber.Ctx)
-	GetBookStore(c *fiber.Ctx)
-	UpdateBookStore(c *fiber.Ctx)
-	DeleteBookStore(c *fiber.Ctx)
+	GetAllBookStore(c *fiber.Ctx) error
+	AddBookStore(c *fiber.Ctx) error
+	GetBookStore(c *fiber.Ctx) error
+	UpdateBookStore(c *fiber.Ctx) error
+	DeleteBookStore(c *fiber.Ctx) error
 }
