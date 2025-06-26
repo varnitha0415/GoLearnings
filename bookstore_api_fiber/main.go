@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 	"github.com/varnitha0415/GoLearnings/bookstore_api_fiber/config"
+	"github.com/varnitha0415/GoLearnings/bookstore_api_fiber/handlers"
 )
 
 func main() {
@@ -10,11 +11,9 @@ func main() {
 	app := fiber.New()
 
 	collection := config.ConnectToMongoDB()
-	bookstoreHandler := handlers.bookStoreHandlerImpl(collection)
+	bookstoreHandler := handlers.NewBookHandler(collection)
 
-	app.Get("/books", func(c *fiber.Ctx) error {
-		return bookstoreHandler.GetAllBookStore(c, dbClient)
-	})
+	app.Get("/bookstore", bookstoreHandler.GetAllBookStore)
 
 	app.Listen(":3000")
 

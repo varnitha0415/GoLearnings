@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 	"github.com/varnitha0415/GoLearnings/bookstore_api_fiber/models"
 	"go.mongodb.org/mongo-driver/bson"
 
@@ -15,7 +15,7 @@ type bookStoreHandlerImpl struct {
 	collection *mongo.Collection
 }
 
-func NewBookHandler(col *mongo.Collection) BookStoreHandler {
+func NewBookHandler(col *mongo.Collection) *bookStoreHandlerImpl {
 	return &bookStoreHandlerImpl{collection: col}
 }
 
